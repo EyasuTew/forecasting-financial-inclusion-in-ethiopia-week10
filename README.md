@@ -170,3 +170,108 @@ Feel free to customize:
 - Update when Tasks 3–5 are completed
 
 Let me know if you want to add GitHub badges, a table of contents, contribution section, or make it more visual!
+
+
+
+# Tasks 3–5: Event Impact Modeling, Forecasting & Interactive Dashboard
+
+**Completed**: February 2026  
+**Current branch status**: `task-5` (merged from task-3 and task-4)
+
+This section documents the implementation and deliverables for the final three tasks of the challenge.
+
+## Task 3 – Event Impact Modeling
+
+**Objective**  
+Quantify how catalogued events (product launches, policy changes, infrastructure investments) affect key financial inclusion indicators (primarily Access and Usage).
+
+**Key outputs**
+
+- Event-indicator association matrix (estimated impact in percentage points)
+- Heatmap visualization of impacts
+- Historical validation (e.g. Telebirr launch May 2021)
+- Methodology documentation & limitations
+
+**Implementation notes**
+
+- The starter dataset contained **no usable `impact_link` records** (or linking column was missing → `parent_id` not found).
+- Fallback approach: created a **manual/estimated impact matrix** using:
+  - Observed pre/post changes from historical data
+  - Market nuances (Sheet D)
+  - Comparable country evidence (e.g. Kenya M-Pesa long-term effects)
+- Conservative estimates applied (product launches down-weighted due to observed stagnation)
+
+**Main files**
+
+- `notebooks/task3_event_impact_modeling.ipynb` → diagnostics, manual matrix, heatmap
+- `reports/figures/task3_impact_matrix_estimated.png` → saved heatmap
+
+**Example matrix excerpt** (estimated pp change after lag)
+
+| Event (partial name)     | ACC_OWNERSHIP | ACC_MM_ACCOUNT | USG_DIGITAL_PAYMENT |
+|--------------------------|---------------|----------------|---------------------|
+| Telebirr                 | +1.2          | +4.8           | —                   |
+| M-Pesa                   | —             | +2.5           | —                   |
+| Fayda                    | +4.0          | —              | —                   |
+| Interoperability         | —             | —              | +6.0                |
+
+## Task 4 – Forecasting Access and Usage (2025–2027)
+
+**Objective**  
+Produce point forecasts + uncertainty ranges for:
+
+- **Access**: Account Ownership Rate (`ACC_OWNERSHIP`)
+- **Usage**: Digital Payment Adoption Rate (proxied)
+
+with baseline trend continuation and event-augmented scenarios.
+
+**Approach** (given very sparse data: only 4 reliable Findex points)
+
+1. Linear OLS trend fitted on 2014–2024 ownership points
+2. Added lagged step interventions from Task 3 manual estimates
+3. Three scenarios generated:
+   - Baseline (pure trend)
+   - With Events (intervention effects)
+   - Optimistic / Pessimistic bounds
+
+**Forecast summary (mid-point estimates)**
+
+| Year | Baseline | With Events | Optimistic | Pessimistic |
+|------|----------|-------------|------------|-------------|
+| 2025 | 50.8%    | 52.6%       | 53.5%      | 49.0%       |
+| 2026 | 52.1%    | 55.3%       | 56.8%      | 49.5%       |
+| 2027 | 53.4%    | 57.9%       | 59.2%      | 50.0%       |
+
+**Main files**
+
+- `notebooks/task4_forecasting_2025_2027.ipynb` → trend model, intervention addition, scenarios
+- `reports/figures/task4_forecast_access.png` → main forecast visualization
+
+**Interpretation highlights**
+
+- Baseline trend alone → ~53% by 2027 (very slow)
+- Plausible event effects (Fayda, interoperability, agents) → could reach ~58% by 2027
+- Still below aspirational NFIS-II ~60% target → activation remains critical
+
+## Task 5 – Interactive Dashboard
+
+**Objective**  
+Create a stakeholder-facing Streamlit dashboard with ≥4 interactive visualizations.
+
+**Features implemented**
+
+- **Overview tab**: key metrics cards (ownership, registered accounts, Telebirr users, gender gap, P2P dominance)
+- **Trends tab**: historical ownership line chart + toggleable event annotations
+- **Forecasts tab**: interactive scenario selector (baseline / with events / optimistic / pessimistic) + uncertainty bands + adjustable NFIS target line
+- **Progress tab**: gauge indicator showing current position vs chosen target + gap metric
+
+**Technology**
+
+- Streamlit + Plotly (interactive charts)
+- Hard-coded data for simplicity (can be replaced with CSV/Excel loading later)
+
+**How to run**
+
+```bash
+pip install streamlit plotly pandas numpy
+streamlit run src/app.py
